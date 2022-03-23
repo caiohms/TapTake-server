@@ -5,7 +5,11 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 )
+
+// The Port this Http Server is running on.
+var Port = "8090"
 
 // GetRoot Gets the Root '/' of the Http Server.
 func GetRoot(resp http.ResponseWriter, request *http.Request) {
@@ -21,6 +25,15 @@ func main() {
 	// Specify that root '/' calls GetRoot function.
 	http.HandleFunc("/", GetRoot)
 
-	// Start a Http server at port 8090.
-	http.ListenAndServe(":8090", nil)
+	// Get the Port from the Environment Variable.
+	var EnvPort = os.Getenv("PORT")
+
+	// If we have an Environment Port...
+	if len(EnvPort) > 0 {
+		// Set the Port.
+		Port = EnvPort
+	}
+
+	// Start a Http server at port.
+	http.ListenAndServe(":"+Port, nil)
 }
