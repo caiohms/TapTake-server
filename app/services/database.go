@@ -1,12 +1,13 @@
 // Package database.
-package database
+package services
 
 // Imports.
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
 // Database connection.
@@ -52,4 +53,8 @@ func Init() {
 func Query(query string, args ...interface{}) (*sql.Rows, error) {
 	// Execute the query.
 	return db.Query(query, args...)
+}
+
+func GetRestaurante(nome string) {
+	Query("SELECT * FROM restaurantes WHERE name=$1", nome)
 }

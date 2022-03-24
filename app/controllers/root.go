@@ -1,11 +1,11 @@
 // Package endpoints.
-package endpoints
+package controllers
 
 // Imports.
 import (
-	"TapTake-server/database"
-	"TapTake-server/database/models"
-	"TapTake-server/server/helpers"
+	"TapTake-server/app/models"
+	database "TapTake-server/app/services"
+	"TapTake-server/app/utils"
 	"fmt"
 	"net/http"
 )
@@ -13,7 +13,7 @@ import (
 // Root Gets the Root '/' of the Http Server.
 func Root(resp http.ResponseWriter, request *http.Request) {
 	// Check HTTP Method.
-	if !helpers.CheckRequestMethod(request, http.MethodGet, resp) {
+	if !utils.CheckRequestMethod(request, http.MethodGet, resp) {
 		// Method is incorrect, return.
 		return
 	}
@@ -60,5 +60,5 @@ func Root(resp http.ResponseWriter, request *http.Request) {
 	}
 
 	// Write Response.
-	helpers.WriteResponse(resp, http.StatusOK, Rst)
+	utils.WriteResponse(resp, http.StatusOK, Rst)
 }
