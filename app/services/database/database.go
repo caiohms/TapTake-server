@@ -1,5 +1,5 @@
 // Package database.
-package repository
+package database
 
 // Imports.
 import (

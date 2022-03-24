@@ -4,7 +4,7 @@ package controllers
 // Imports.
 import (
 	"TapTake-server/app/models"
-	"TapTake-server/app/services/repository"
+	"TapTake-server/app/services/database"
 	"TapTake-server/app/utils"
 	"fmt"
 	"net/http"
@@ -27,7 +27,7 @@ func Root(resp http.ResponseWriter, request *http.Request) {
 	}
 
 	// Run Simple Query.
-	sqlRows, err := repository.Query("SELECT 1")
+	sqlRows, err := database.Query("SELECT 1")
 
 	// Check for Error.
 	if err != nil {

@@ -4,7 +4,7 @@ package app
 // Imports.
 import (
 	"TapTake-server/app/controllers"
-	"TapTake-server/app/services/repository"
+	"TapTake-server/app/services/database"
 	"fmt"
 	"net/http"
 	"os"
@@ -28,7 +28,7 @@ func SetupHttpHandlers() {
 // Init the Http Server.
 func Init() {
 
-	repository.Init()
+	database.Init()
 
 	// Notify.
 	fmt.Println("Initializing Http Server...")
