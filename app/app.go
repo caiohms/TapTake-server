@@ -4,7 +4,7 @@ package app
 // Imports.
 import (
 	"TapTake-server/app/controllers"
-	repository "TapTake-server/app/services"
+	"TapTake-server/app/services/repository"
 	"fmt"
 	"net/http"
 	"os"

@@ -1,5 +1,5 @@
 // Package database.
-package services
+package repository
 
 // Imports.
 import (
@@ -55,6 +55,10 @@ func Query(query string, args ...interface{}) (*sql.Rows, error) {
 	return db.Query(query, args...)
 }
 
+/*
+ * Only export "top level" functions
+ * use SQL only in this file
+ */
 func GetRestaurante(nome string) {
 	Query("SELECT * FROM restaurantes WHERE name=$1", nome)
 }
