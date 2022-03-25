@@ -1,5 +1,5 @@
 // Package helpers.
-package helpers
+package utils
 
 // Imports.
 import (

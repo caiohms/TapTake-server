@@ -3,15 +3,10 @@ package main
 
 // Imports.
 import (
-	"TapTake-server/database"
-	"TapTake-server/server"
+	"TapTake-server/app"
 )
 
 // Main Function.
 func main() {
-	// First, init the database.
-	database.Init()
-
-	// Then, init the http server.
-	server.Init()
+	app.Init()
 }
