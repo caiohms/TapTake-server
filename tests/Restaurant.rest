@@ -1,0 +1,19 @@
+GET http://localhost:8090/restaurant
+
+###
+
+GET http://localhost:8090/restaurant/specific
+
+###
+
+PUT http://localhost:8090/restaurant/specific
+
+###
+
+DELETE  http://localhost:8090/restaurant/specific
+
+###
+
+POST  http://localhost:8090/restaurant/
+
+###
