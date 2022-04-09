@@ -18,8 +18,11 @@ var port int = 8090
 func main() {
 	// Get the Port.
 
-	// Add Env check for production values
-	database.InitSQLite("Test.db")
+	if os.Getenv("ENV_MODE") == "debug" {
+		database.InitSQLite("Test.db")
+	} else {
+
+	}
 
 	EnvPort := os.Getenv("PORT")
 
