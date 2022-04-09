@@ -4,6 +4,7 @@ package main
 // Imports.
 import (
 	"TapTake-server/app"
+	"TapTake-server/app/services/database"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,6 +17,10 @@ var port int = 8090
 // Main Function.
 func main() {
 	// Get the Port.
+
+	// Add Env check for production values
+	database.InitSQLite("Test.db")
+
 	EnvPort := os.Getenv("PORT")
 
 	if len(EnvPort) > 0 {

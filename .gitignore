@@ -7,3 +7,5 @@
 /dist/
 /out/
 .env
+*.db
+*.db-journal

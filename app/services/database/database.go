@@ -4,10 +4,14 @@ package database
 // Imports.
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 
 	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Database connection.
@@ -15,6 +19,41 @@ var db *sql.DB
 
 // ConnectionString for the local deployment.
 var ConnectionString = "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable"
+
+// Initializes SQLite database. If database does not exist, it will create and populate the database with sample data
+func InitSQLite(dbFile string) {
+	if dbFile == "" {
+		dbFile = "Test.db"
+	}
+	log.Println("Using SQLite Database (I hope this is not a production log)")
+
+	dbExist := true
+	if _, err := os.Stat(dbFile); errors.Is(err, os.ErrNotExist) {
+		dbExist = false
+	}
+	var err error
+	db, err = sql.Open("sqlite3", dbFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !dbExist {
+		dbData, err := ioutil.ReadFile("scripts/dbSQLite.sql")
+		if err != nil {
+			log.Fatal(err)
+		}
+		db.Exec(string(dbData))
+
+		dbData, err = ioutil.ReadFile("scripts/dbSQLite-sampleData.sql")
+		if err != nil {
+			log.Fatal(err)
+		}
+		db.Exec(string(dbData))
+	}
+}
+
+func CloseDB() {
+	db.Close()
+}
 
 // Init Inits the Postgres database.
 func Init() {
