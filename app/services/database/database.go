@@ -29,7 +29,6 @@ func InitSQLite(dbFile string) {
 
 	dbExist := true
 	if _, err := os.Stat(dbFile); errors.Is(err, os.ErrNotExist) {
-		os.Create(dbFile)
 		dbExist = false
 	}
 	var err error
@@ -38,18 +37,22 @@ func InitSQLite(dbFile string) {
 		log.Fatal(err)
 	}
 	if !dbExist {
-		dbData, err := ioutil.ReadFile("script/dbSQLite.sql")
+		dbData, err := ioutil.ReadFile("scripts/dbSQLite.sql")
 		if err != nil {
 			log.Fatal(err)
 		}
-		db.Query(string(dbData))
+		db.Exec(string(dbData))
 
-		dbData, err = ioutil.ReadFile("script/dbSQLite-sampleData.sql")
+		dbData, err = ioutil.ReadFile("scripts/dbSQLite-sampleData.sql")
 		if err != nil {
 			log.Fatal(err)
 		}
-		db.Query(string(dbData))
+		db.Exec(string(dbData))
 	}
+}
+
+func CloseDB() {
+	db.Close()
 }
 
 // Init Inits the Postgres database.
