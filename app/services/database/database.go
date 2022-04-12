@@ -16,6 +16,14 @@ import (
 
 // Database connection.
 var db *sql.DB
+var DBType DatabaseType = -1
+
+type DatabaseType int
+
+const (
+	SQLite3 DatabaseType = iota
+	PSQL
+)
 
 // ConnectionString for the local deployment.
 var ConnectionString = "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable"
@@ -41,7 +49,11 @@ func InitSQLite(dbFile string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		db.Exec(string(dbData))
+		_, err = db.Exec(string(dbData))
+
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		dbData, err = ioutil.ReadFile("scripts/dbSQLite-sampleData.sql")
 		if err != nil {
@@ -49,6 +61,7 @@ func InitSQLite(dbFile string) {
 		}
 		db.Exec(string(dbData))
 	}
+	DBType = SQLite3
 }
 
 func CloseDB() {
@@ -86,6 +99,7 @@ func Init() {
 
 	// Notify.
 	fmt.Println("Database initialized.")
+	DBType = PSQL
 }
 
 // Query executes a query.

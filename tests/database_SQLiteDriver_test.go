@@ -27,10 +27,10 @@ func TestDatabaseDriver(t *testing.T) {
 
 		// Execute Query
 		r, err := database.Query("SELECT * FROM Restaurant;")
-		defer r.Close()
 		if err != nil {
 			t.Errorf("Error in database query: %v", err)
 		}
+		defer r.Close()
 
 		// Read only the first row
 		r.Next()
