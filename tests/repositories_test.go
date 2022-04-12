@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"TapTake-server/app/models"
 	"TapTake-server/app/repositories/ItemRepository"
 	"TapTake-server/app/repositories/RestaurantRepository"
 	"TapTake-server/app/repositories/RoleMapRepository"
@@ -15,7 +16,7 @@ import (
 	"time"
 )
 
-func TestRepositories(t *testing.T) {
+func TestGetRepositories(t *testing.T) {
 
 	// Change to root dir
 	os.Chdir("..")
@@ -25,20 +26,6 @@ func TestRepositories(t *testing.T) {
 	// Use memory mode (does not create local database file)
 	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
 	defer database.CloseDB()
-
-	t.Run("Get a valid item", func(t *testing.T) {
-		item := ItemRepository.GetById(1)
-		if !item.IsValid() {
-			t.Fatal("Item is not valid")
-		}
-	})
-
-	t.Run("Get an invalid item", func(t *testing.T) {
-		item := ItemRepository.GetById(3)
-		if item.IsValid() {
-			t.Fatal("Item is valid")
-		}
-	})
 
 	t.Run("Get a valid restaurant", func(t *testing.T) {
 		rest := RestaurantRepository.GetById(1)
@@ -122,5 +109,109 @@ func TestRepositories(t *testing.T) {
 		if obj.IsValid() {
 			t.Fatal("User is valid")
 		}
+	})
+}
+
+func TestItemRepository(t *testing.T) {
+
+	// Change to root dir
+	os.Chdir("..")
+
+	// Create database for this test
+	stamp := time.Now().Unix()
+	// Use memory mode (does not create local database file)
+	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
+	defer database.CloseDB()
+
+	t.Run("Get a valid item", func(t *testing.T) {
+		item := ItemRepository.GetById(1)
+		if !item.IsValid() {
+			t.Fatal("Item is not valid")
+		}
+	})
+
+	t.Run("Get an invalid item", func(t *testing.T) {
+		item := ItemRepository.GetById(3)
+		if item.IsValid() {
+			t.Fatal("Item is valid")
+		}
+	})
+
+	t.Run("Add new Item", func(t *testing.T) {
+		item := models.Item{
+			RestaurantId:      1,
+			Price:             15,
+			Quantity:          30,
+			Name:              "Hamburguer",
+			Description:       "Dois hamburgueres alface queijo molho especial...",
+			CancelGracePeriod: 10,
+		}
+		err := ItemRepository.AddNew(&item)
+
+		if err != nil {
+			t.Log(err)
+		}
+
+		if !item.IsValid() {
+			t.Fatalf("Added Item is invalid")
+		}
+
+	})
+
+	t.Run("Add new Item with invalid restaurant", func(t *testing.T) {
+		item := models.Item{
+			RestaurantId:      0,
+			Price:             15,
+			Quantity:          30,
+			Name:              "Hamburguer",
+			Description:       "Dois hamburgueres alface queijo molho especial...",
+			CancelGracePeriod: 10,
+		}
+		err := ItemRepository.AddNew(&item)
+		if err.Error() != "0" {
+			t.Fatalf("Error is nil")
+		}
+		if item.IsValid() {
+			t.Fatalf("Added Item is valid")
+		}
+
+	})
+
+	t.Run("Add new Item with invalid price", func(t *testing.T) {
+		item := models.Item{
+			RestaurantId:      1,
+			Price:             -1,
+			Quantity:          30,
+			Name:              "Hamburguer",
+			Description:       "Dois hamburgueres alface queijo molho especial...",
+			CancelGracePeriod: 10,
+		}
+		err := ItemRepository.AddNew(&item)
+		if err.Error() != "1" {
+			t.Fatalf("Error is nil")
+		}
+		if item.IsValid() {
+			t.Fatalf("Added Item is valid")
+		}
+
+	})
+
+	t.Run("Add new Item with invalid price", func(t *testing.T) {
+		item := models.Item{
+			RestaurantId:      1,
+			Price:             -1,
+			Quantity:          30,
+			Name:              "Hamburguer",
+			Description:       "Dois hamburgueres alface queijo molho especial...",
+			CancelGracePeriod: 10,
+		}
+		err := ItemRepository.AddNew(&item)
+		if err.Error() != "1" {
+			t.Fatalf("Error is nil")
+		}
+		if item.IsValid() {
+			t.Fatalf("Added Item is valid")
+		}
+
 	})
 }

@@ -5,7 +5,19 @@ import (
 	"TapTake-server/app/models"
 	"TapTake-server/app/repositories/RestaurantRepository"
 	"TapTake-server/app/services/database"
+	"errors"
+	"fmt"
 	"log"
+)
+
+type ItemErrorCode int
+
+const (
+	INV_RESTAURANT ItemErrorCode = iota
+	INV_PRICE
+	INV_QUANTITY
+	INV_NAME
+	INV_CANCEL
 )
 
 // GetById Gets an Item by Id.
@@ -60,4 +72,46 @@ func GetRestaurantByItem(item models.Item) models.Restaurant {
 
 	// Return Get Restaurant.
 	return RestaurantRepository.GetById(item.RestaurantId)
+}
+
+func AddNew(item *models.Item) error {
+
+	if !RestaurantRepository.GetById(item.RestaurantId).IsValid() {
+		return errors.New(fmt.Sprint(INV_RESTAURANT))
+	}
+	if item.Price < 0 {
+		return errors.New(fmt.Sprint(INV_PRICE))
+	}
+	if item.Quantity < 0 {
+		return errors.New(fmt.Sprint(INV_QUANTITY))
+	}
+	if item.Name == "" {
+		return errors.New(fmt.Sprint(INV_NAME))
+	}
+	if item.CancelGracePeriod < 0 {
+		return errors.New(fmt.Sprint(INV_CANCEL))
+	}
+
+	rows, err := database.Query("INSERT INTO Item (Restaurant, Price, Quantity, Name, Description, CancelGracePeriod) VALUES (?,?,?,?,?,?) RETURNING Id",
+		item.RestaurantId, item.Price, item.Quantity, item.Name, item.Description, item.CancelGracePeriod)
+
+	// Check for errors.
+	if err != nil {
+		// Notify.
+		log.Printf("Couldn't add Item: %s\n", err.Error())
+	}
+	defer rows.Close()
+	// For each row..
+	for rows.Next() {
+
+		// Scan the row.
+		err = rows.Scan(&item.Id)
+
+		// Check for errors.
+		if err != nil {
+			// Notify.
+			log.Printf("Couldn't scan Item: %s\n", err.Error())
+		}
+	}
+	return nil
 }

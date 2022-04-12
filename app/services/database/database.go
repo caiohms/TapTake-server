@@ -59,7 +59,12 @@ func InitSQLite(dbFile string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		db.Exec(string(dbData))
+
+		_, err = db.Exec(string(dbData))
+
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	DBType = SQLite3
 }
