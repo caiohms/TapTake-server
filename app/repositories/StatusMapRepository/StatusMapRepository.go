@@ -21,6 +21,7 @@ func GetById(Id int) models.StatusMap {
 		// Return empty Status Map.
 		return models.InvalidStatusMap
 	}
+	defer rows.Close()
 
 	// For each row..
 	for rows.Next() {

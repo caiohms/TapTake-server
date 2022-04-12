@@ -20,6 +20,7 @@ func GetById(Id int) models.University {
 		// Return empty University.
 		return models.InvalidUniversity
 	}
+	defer rows.Close()
 
 	// For each row..
 	for rows.Next() {

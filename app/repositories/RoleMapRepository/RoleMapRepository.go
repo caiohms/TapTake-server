@@ -21,6 +21,7 @@ func GetById(Id int) models.RoleMap {
 		// Return empty Role Map.
 		return models.InvalidRoleMap
 	}
+	defer rows.Close()
 
 	// For each row..
 	for rows.Next() {

@@ -11,7 +11,7 @@ import (
 // GetById Gets an Item by Id.
 func GetById(Id int) models.Item {
 	// Query by Id.
-	rows, err := database.Query("SELECT Id, Restaurant, Price, Quantity, Name, Description, CancelGradePeriod FROM Item WHERE id = ?", Id)
+	rows, err := database.Query("SELECT Id, Restaurant, Price, Quantity, Name, Description, CancelGracePeriod FROM Item WHERE id = ?", Id)
 
 	// Check for errors.
 	if err != nil {
@@ -21,7 +21,7 @@ func GetById(Id int) models.Item {
 		// Return empty Item.
 		return models.InvalidItem
 	}
-
+	defer rows.Close()
 	// For each row..
 	for rows.Next() {
 		// Create a new Item.

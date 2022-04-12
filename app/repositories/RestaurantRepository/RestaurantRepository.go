@@ -21,6 +21,7 @@ func GetById(Id int) models.Restaurant {
 		// Return empty Restaurant.
 		return models.InvalidRestaurant
 	}
+	defer rows.Close()
 
 	// For each row..
 	for rows.Next() {

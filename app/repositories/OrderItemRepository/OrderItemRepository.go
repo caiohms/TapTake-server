@@ -22,6 +22,7 @@ func GetById(Id int) models.OrderItem {
 		// Return empty Order item.
 		return models.InvalidOrderItem
 	}
+	defer rows.Close()
 
 	// For each row..
 	for rows.Next() {

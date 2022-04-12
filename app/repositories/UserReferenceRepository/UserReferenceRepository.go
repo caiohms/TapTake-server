@@ -7,13 +7,20 @@ import (
 	"TapTake-server/app/repositories/UniversityRepository"
 	"TapTake-server/app/repositories/UserRepository"
 	"TapTake-server/app/services/database"
+	"database/sql"
 	"log"
 )
 
 // GetById Gets a User Reference by Id.
 func GetById(Id int) models.UserReference {
-	// Query by Id.
-	rows, err := database.Query("SELECT Id, University, Restaurant, User FROM UserReference WHERE id = ?", Id)
+
+	var rows *sql.Rows
+	var err error
+
+	if database.DBType == database.SQLite3 {
+		// Query by Id.
+		rows, err = database.Query("SELECT Id, Ifnull(University, 0) ,Ifnull(Restaurant, 0), User FROM UserReference WHERE id = ?", Id)
+	}
 
 	// Check for errors.
 	if err != nil {
@@ -23,6 +30,7 @@ func GetById(Id int) models.UserReference {
 		// Return empty User Reference.
 		return models.InvalidUserReference
 	}
+	defer rows.Close()
 
 	// For each row..
 	for rows.Next() {

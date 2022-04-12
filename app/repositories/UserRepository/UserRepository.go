@@ -21,6 +21,7 @@ func GetById(Id int) models.User {
 		// Return empty Users.
 		return models.InvalidUser
 	}
+	defer rows.Close()
 
 	// For each row..
 	for rows.Next() {
