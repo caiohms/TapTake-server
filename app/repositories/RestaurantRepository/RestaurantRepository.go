@@ -8,6 +8,33 @@ import (
 	"log"
 )
 
+// Error classes
+type RestaurantErrorCode int
+
+type RestaurantError interface {
+	Error() string
+	Code() RestaurantErrorCode
+}
+
+type iErr struct {
+	ErrCode RestaurantErrorCode
+	Err     string
+}
+
+func (i iErr) Code() RestaurantErrorCode {
+	return i.ErrCode
+}
+
+func (i iErr) Error() string {
+	return i.Err
+}
+
+const (
+	INV_NAME RestaurantErrorCode = iota
+	INV_UNI
+	UNK
+)
+
 // GetById Gets a Restaurant by Id.
 func GetById(Id int) models.Restaurant {
 	// Query by Id.
@@ -61,4 +88,39 @@ func GetUniversityByRestaurant(restaurant models.Restaurant) models.University {
 
 	// Return Get by Id.
 	return UniversityRepository.GetById(restaurant.UniversityId)
+}
+
+func AddNew(restaurant *models.Restaurant) RestaurantError {
+
+	if restaurant.Name == "" {
+		return iErr{ErrCode: INV_NAME}
+	}
+	if !UniversityRepository.GetById(restaurant.UniversityId).IsValid() {
+		return iErr{ErrCode: INV_UNI}
+	}
+
+	rows, err := database.Query("INSERT INTO Restaurant (Name, University) VALUES (?,?) RETURNING Id",
+		restaurant.Name, restaurant.UniversityId)
+
+	// Check for errors.
+	if err != nil {
+		// Notify.
+		log.Printf("Couldn't add Item: %s\n", err.Error())
+		return iErr{ErrCode: UNK, Err: err.Error()}
+	}
+	defer rows.Close()
+	// For each row..
+	for rows.Next() {
+
+		// Scan the row.
+		err = rows.Scan(&restaurant.Id)
+
+		// Check for errors.
+		if err != nil {
+			// Notify.
+			log.Printf("Couldn't scan Item: %s\n", err.Error())
+			return iErr{ErrCode: UNK, Err: err.Error()}
+		}
+	}
+	return nil
 }

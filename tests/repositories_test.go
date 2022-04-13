@@ -27,20 +27,6 @@ func TestGetRepositories(t *testing.T) {
 	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
 	defer database.CloseDB()
 
-	t.Run("Get a valid restaurant", func(t *testing.T) {
-		rest := RestaurantRepository.GetById(1)
-		if !rest.IsValid() {
-			t.Fatal("Restaurant is not valid")
-		}
-	})
-
-	t.Run("Get an invalid restaurant", func(t *testing.T) {
-		rest := RestaurantRepository.GetById(2)
-		if rest.IsValid() {
-			t.Fatal("Restaurant is valid")
-		}
-	})
-
 	t.Run("Get a valid RoleMap item", func(t *testing.T) {
 		obj := RoleMapRepository.GetById(1)
 		if !obj.IsValid() {
@@ -251,5 +237,75 @@ func TestItemRepository(t *testing.T) {
 			t.Fatalf("Added Item is valid")
 		}
 
+	})
+}
+
+func TestRestaurantRepository(t *testing.T) {
+	// Change to root dir
+	os.Chdir("..")
+
+	// Create database for this test
+	stamp := time.Now().Unix()
+	// Use memory mode (does not create local database file)
+	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
+	defer database.CloseDB()
+
+	t.Run("Get a valid restaurant", func(t *testing.T) {
+		rest := RestaurantRepository.GetById(1)
+		if !rest.IsValid() {
+			t.Fatal("Restaurant is not valid")
+		}
+	})
+
+	t.Run("Get an invalid restaurant", func(t *testing.T) {
+		rest := RestaurantRepository.GetById(2)
+		if rest.IsValid() {
+			t.Fatal("Restaurant is valid")
+		}
+	})
+
+	t.Run("Add new restaurant", func(t *testing.T) {
+		rest := models.Restaurant{
+			Id:           0,
+			UniversityId: 1,
+			Name:         "Lanchonete DCE",
+		}
+		err := RestaurantRepository.AddNew(&rest)
+		if err != nil {
+			t.Fatal("Error is not nil")
+		}
+		if !rest.IsValid() {
+			t.Fatal("Restaurant is not valid")
+		}
+	})
+
+	t.Run("Add new restaurant with invalid name", func(t *testing.T) {
+		rest := models.Restaurant{
+			Id:           0,
+			UniversityId: 1,
+			Name:         "",
+		}
+		err := RestaurantRepository.AddNew(&rest)
+		if err.Code() != RestaurantRepository.INV_NAME {
+			t.Fatal("Error is nil")
+		}
+		if rest.IsValid() {
+			t.Fatal("Restaurant is  valid")
+		}
+	})
+
+	t.Run("Add new restaurant with invalid Uni", func(t *testing.T) {
+		rest := models.Restaurant{
+			Id:           0,
+			UniversityId: 0,
+			Name:         "Hello There",
+		}
+		err := RestaurantRepository.AddNew(&rest)
+		if err.Code() != RestaurantRepository.INV_UNI {
+			t.Fatal("Error is nil")
+		}
+		if rest.IsValid() {
+			t.Fatal("Restaurant is valid")
+		}
 	})
 }
