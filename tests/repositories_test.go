@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func TestGetRepositories(t *testing.T) {
+func TestStaticRepositories(t *testing.T) {
 
 	// Change to root dir
 	os.Chdir("..")
@@ -52,20 +52,6 @@ func TestGetRepositories(t *testing.T) {
 		obj := StatusMapRepository.GetById(7)
 		if obj.IsValid() {
 			t.Fatal("RoleMap is valid")
-		}
-	})
-
-	t.Run("Get a valid University item", func(t *testing.T) {
-		obj := UniversityRepository.GetById(1)
-		if !obj.IsValid() {
-			t.Fatal("University is not valid")
-		}
-	})
-
-	t.Run("Get an invalid University item", func(t *testing.T) {
-		obj := UniversityRepository.GetById(7)
-		if obj.IsValid() {
-			t.Fatal("University is valid")
 		}
 	})
 
@@ -305,6 +291,59 @@ func TestRestaurantRepository(t *testing.T) {
 			t.Fatal("Error is nil")
 		}
 		if rest.IsValid() {
+			t.Fatal("Restaurant is valid")
+		}
+	})
+}
+
+func TestUniversityRepository(t *testing.T) {
+	// Change to root dir
+	os.Chdir("..")
+
+	// Create database for this test
+	stamp := time.Now().Unix()
+	// Use memory mode (does not create local database file)
+	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
+	defer database.CloseDB()
+
+	t.Run("Get a valid University item", func(t *testing.T) {
+		obj := UniversityRepository.GetById(1)
+		if !obj.IsValid() {
+			t.Fatal("University is not valid")
+		}
+	})
+
+	t.Run("Get an invalid University item", func(t *testing.T) {
+		obj := UniversityRepository.GetById(7)
+		if obj.IsValid() {
+			t.Fatal("University is valid")
+		}
+	})
+
+	t.Run("Add new University", func(t *testing.T) {
+		uni := models.University{
+			Id:   0,
+			Name: "PUCPR campus curitiba",
+		}
+		err := UniversityRepository.AddNew(&uni)
+		if err != nil {
+			t.Fatal("Error is not nil")
+		}
+		if !uni.IsValid() {
+			t.Fatal("Restaurant is not valid")
+		}
+	})
+
+	t.Run("Add invalid University", func(t *testing.T) {
+		uni := models.University{
+			Id:   0,
+			Name: "",
+		}
+		err := UniversityRepository.AddNew(&uni)
+		if err.Code() != UniversityRepository.INV_NAME {
+			t.Fatal("Error is nil")
+		}
+		if uni.IsValid() {
 			t.Fatal("Restaurant is valid")
 		}
 	})
