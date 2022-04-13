@@ -5,12 +5,29 @@ import (
 	"TapTake-server/app/models"
 	"TapTake-server/app/repositories/RestaurantRepository"
 	"TapTake-server/app/services/database"
-	"errors"
-	"fmt"
 	"log"
 )
 
+// Error classes
 type ItemErrorCode int
+
+type ItemError interface {
+	Error() string
+	Code() ItemErrorCode
+}
+
+type iErr struct {
+	ErrCode ItemErrorCode
+	Err     string
+}
+
+func (i iErr) Code() ItemErrorCode {
+	return i.ErrCode
+}
+
+func (i iErr) Error() string {
+	return i.Err
+}
 
 const (
 	INV_RESTAURANT ItemErrorCode = iota
@@ -18,7 +35,10 @@ const (
 	INV_QUANTITY
 	INV_NAME
 	INV_CANCEL
+	UNK
 )
+
+// Functions
 
 // GetById Gets an Item by Id.
 func GetById(Id int) models.Item {
@@ -74,22 +94,22 @@ func GetRestaurantByItem(item models.Item) models.Restaurant {
 	return RestaurantRepository.GetById(item.RestaurantId)
 }
 
-func AddNew(item *models.Item) error {
+func AddNew(item *models.Item) ItemError {
 
 	if !RestaurantRepository.GetById(item.RestaurantId).IsValid() {
-		return errors.New(fmt.Sprint(INV_RESTAURANT))
+		return iErr{ErrCode: INV_RESTAURANT}
 	}
 	if item.Price < 0 {
-		return errors.New(fmt.Sprint(INV_PRICE))
+		return iErr{ErrCode: INV_PRICE}
 	}
 	if item.Quantity < 0 {
-		return errors.New(fmt.Sprint(INV_QUANTITY))
+		return iErr{ErrCode: INV_QUANTITY}
 	}
 	if item.Name == "" {
-		return errors.New(fmt.Sprint(INV_NAME))
+		return iErr{ErrCode: INV_NAME}
 	}
 	if item.CancelGracePeriod < 0 {
-		return errors.New(fmt.Sprint(INV_CANCEL))
+		return iErr{ErrCode: INV_CANCEL}
 	}
 
 	rows, err := database.Query("INSERT INTO Item (Restaurant, Price, Quantity, Name, Description, CancelGracePeriod) VALUES (?,?,?,?,?,?) RETURNING Id",
@@ -99,6 +119,7 @@ func AddNew(item *models.Item) error {
 	if err != nil {
 		// Notify.
 		log.Printf("Couldn't add Item: %s\n", err.Error())
+		return iErr{ErrCode: UNK, Err: err.Error()}
 	}
 	defer rows.Close()
 	// For each row..
@@ -111,6 +132,7 @@ func AddNew(item *models.Item) error {
 		if err != nil {
 			// Notify.
 			log.Printf("Couldn't scan Item: %s\n", err.Error())
+			return iErr{ErrCode: UNK, Err: err.Error()}
 		}
 	}
 	return nil

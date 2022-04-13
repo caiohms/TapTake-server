@@ -168,7 +168,7 @@ func TestItemRepository(t *testing.T) {
 			CancelGracePeriod: 10,
 		}
 		err := ItemRepository.AddNew(&item)
-		if err.Error() != "0" {
+		if err.Code() != ItemRepository.INV_RESTAURANT {
 			t.Fatalf("Error is nil")
 		}
 		if item.IsValid() {
@@ -187,7 +187,7 @@ func TestItemRepository(t *testing.T) {
 			CancelGracePeriod: 10,
 		}
 		err := ItemRepository.AddNew(&item)
-		if err.Error() != "1" {
+		if err.Code() != ItemRepository.INV_PRICE {
 			t.Fatalf("Error is nil")
 		}
 		if item.IsValid() {
@@ -196,17 +196,55 @@ func TestItemRepository(t *testing.T) {
 
 	})
 
-	t.Run("Add new Item with invalid price", func(t *testing.T) {
+	t.Run("Add new Item with invalid quantity", func(t *testing.T) {
 		item := models.Item{
 			RestaurantId:      1,
-			Price:             -1,
-			Quantity:          30,
+			Price:             1,
+			Quantity:          -1,
 			Name:              "Hamburguer",
 			Description:       "Dois hamburgueres alface queijo molho especial...",
 			CancelGracePeriod: 10,
 		}
 		err := ItemRepository.AddNew(&item)
-		if err.Error() != "1" {
+		if err.Code() != ItemRepository.INV_QUANTITY {
+			t.Fatalf("Error is nil")
+		}
+		if item.IsValid() {
+			t.Fatalf("Added Item is valid")
+		}
+
+	})
+
+	t.Run("Add new Item with invalid name", func(t *testing.T) {
+		item := models.Item{
+			RestaurantId:      1,
+			Price:             1,
+			Quantity:          1,
+			Name:              "",
+			Description:       "Dois hamburgueres alface queijo molho especial...",
+			CancelGracePeriod: 10,
+		}
+		err := ItemRepository.AddNew(&item)
+		if err.Code() != ItemRepository.INV_NAME {
+			t.Fatalf("Error is nil")
+		}
+		if item.IsValid() {
+			t.Fatalf("Added Item is valid")
+		}
+
+	})
+
+	t.Run("Add new Item with invalid cancel", func(t *testing.T) {
+		item := models.Item{
+			RestaurantId:      1,
+			Price:             1,
+			Quantity:          1,
+			Name:              "A",
+			Description:       "Dois hamburgueres alface queijo molho especial...",
+			CancelGracePeriod: -1,
+		}
+		err := ItemRepository.AddNew(&item)
+		if err.Code() != ItemRepository.INV_CANCEL {
 			t.Fatalf("Error is nil")
 		}
 		if item.IsValid() {
