@@ -55,20 +55,6 @@ func TestStaticRepositories(t *testing.T) {
 		}
 	})
 
-	t.Run("Get a valid UserReference item", func(t *testing.T) {
-		obj := UserReferenceRepository.GetById(1)
-		if !obj.IsValid() {
-			t.Fatal("UserReference is not valid")
-		}
-	})
-
-	t.Run("Get an invalid UserReference item", func(t *testing.T) {
-		obj := UserReferenceRepository.GetById(7)
-		if obj.IsValid() {
-			t.Fatal("UserReference is valid")
-		}
-	})
-
 	t.Run("Get a valid User item", func(t *testing.T) {
 		obj := UserRepository.GetById(1)
 		if !obj.IsValid() {
@@ -345,6 +331,95 @@ func TestUniversityRepository(t *testing.T) {
 		}
 		if uni.IsValid() {
 			t.Fatal("Restaurant is valid")
+		}
+	})
+}
+
+func TestUserReferencerepository(t *testing.T) {
+	// Change to root dir
+	os.Chdir("..")
+
+	// Create database for this test
+	stamp := time.Now().Unix()
+	// Use memory mode (does not create local database file)
+	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
+	defer database.CloseDB()
+
+	t.Run("Get a valid UserReference item", func(t *testing.T) {
+		obj := UserReferenceRepository.GetById(1)
+		if !obj.IsValid() {
+			t.Fatal("UserReference is not valid")
+		}
+	})
+
+	t.Run("Get an invalid UserReference item", func(t *testing.T) {
+		obj := UserReferenceRepository.GetById(7)
+		if obj.IsValid() {
+			t.Fatal("UserReference is valid")
+		}
+	})
+
+	t.Run("Add valid UserReference item", func(t *testing.T) {
+		obj := models.UserReference{
+			Id:           0,
+			UniversityId: 1,
+			RestaurantId: 0,
+			UserId:       1,
+		}
+		err := UserReferenceRepository.AddNew(&obj)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		if !obj.IsValid() {
+			t.Fatal("Obj is invalid")
+		}
+	})
+
+	t.Run("Add invalid UserReference item", func(t *testing.T) {
+		obj := models.UserReference{
+			Id:           0,
+			UniversityId: 0,
+			RestaurantId: 0,
+			UserId:       1,
+		}
+		err := UserReferenceRepository.AddNew(&obj)
+		if err.Code() != UserReferenceRepository.INV_CONFIG {
+			t.Fatal(err.Error())
+		}
+		if obj.IsValid() {
+			t.Fatal("Obj is valid")
+		}
+	})
+
+	t.Run("Add invalid UserReference item", func(t *testing.T) {
+		obj := models.UserReference{
+			Id:           0,
+			UniversityId: 1,
+			RestaurantId: 1,
+			UserId:       1,
+		}
+		err := UserReferenceRepository.AddNew(&obj)
+		if err.Code() != UserReferenceRepository.INV_CONFIG {
+			t.Fatal(err.Error())
+		}
+		if obj.IsValid() {
+			t.Fatal("Obj is valid")
+		}
+	})
+
+	t.Run("Add invalid UserReference item", func(t *testing.T) {
+		obj := models.UserReference{
+			Id:           0,
+			UniversityId: 1,
+			RestaurantId: 0,
+			UserId:       0,
+		}
+		err := UserReferenceRepository.AddNew(&obj)
+		if err.Code() != UserReferenceRepository.INV_USR {
+			t.Fatal(err.Error())
+		}
+		if obj.IsValid() {
+			t.Fatal("Obj is valid")
 		}
 	})
 }

@@ -8,7 +8,35 @@ import (
 	"TapTake-server/app/repositories/UserRepository"
 	"TapTake-server/app/services/database"
 	"database/sql"
+	"fmt"
 	"log"
+)
+
+// Error classes
+type UserReferenceErrorCode int
+
+type UserReferenceError interface {
+	Error() string
+	Code() UserReferenceErrorCode
+}
+
+type iErr struct {
+	ErrCode UserReferenceErrorCode
+	Err     string
+}
+
+func (i iErr) Code() UserReferenceErrorCode {
+	return i.ErrCode
+}
+
+func (i iErr) Error() string {
+	return i.Err
+}
+
+const (
+	INV_CONFIG UserReferenceErrorCode = iota
+	INV_USR
+	UNK
 )
 
 // GetById Gets a User Reference by Id.
@@ -94,4 +122,55 @@ func GetRestaurantByUserReference(userref models.UserReference) models.Restauran
 
 	// Return Get Restaurant.
 	return RestaurantRepository.GetById(userref.RestaurantId)
+}
+
+func AddNew(ur *models.UserReference) UserReferenceError {
+
+	if !UserRepository.GetById(ur.UserId).IsValid() {
+		return iErr{ErrCode: INV_USR}
+	}
+
+	if ur.RestaurantId > 0 && ur.UniversityId > 0 {
+		return iErr{ErrCode: INV_CONFIG}
+	}
+
+	if ur.RestaurantId == 0 && ur.UniversityId == 0 {
+		return iErr{ErrCode: INV_CONFIG}
+	}
+
+	Uni := "NULL"
+	Restaurant := "NULL"
+
+	if ur.UniversityId > 0 {
+		Uni = fmt.Sprint(ur.UniversityId)
+	}
+	if ur.RestaurantId > 0 {
+		Restaurant = fmt.Sprint(ur.RestaurantId)
+	}
+
+	rows, err := database.Query("INSERT INTO UserReference (University, Restaurant, User) VALUES (?,?,?) RETURNING Id",
+		Uni, Restaurant, ur.UserId)
+
+	// Check for errors.
+	if err != nil {
+		// Notify.
+		log.Printf("Couldn't add Item: %s\n", err.Error())
+		return iErr{ErrCode: UNK, Err: err.Error()}
+	}
+	defer rows.Close()
+	// For each row..
+	for rows.Next() {
+
+		// Scan the row.
+		err = rows.Scan(&ur.Id)
+
+		// Check for errors.
+		if err != nil {
+			// Notify.
+			log.Printf("Couldn't scan Item: %s\n", err.Error())
+			return iErr{ErrCode: UNK, Err: err.Error()}
+		}
+	}
+
+	return nil
 }
