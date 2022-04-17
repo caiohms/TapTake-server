@@ -8,6 +8,34 @@ import (
 	"log"
 )
 
+// Error classes
+type UserErrorCode int
+
+type UserError interface {
+	Error() string
+	Code() UserErrorCode
+}
+
+type iErr struct {
+	ErrCode UserErrorCode
+	Err     string
+}
+
+func (i iErr) Code() UserErrorCode {
+	return i.ErrCode
+}
+
+func (i iErr) Error() string {
+	return i.Err
+}
+
+const (
+	INV_EMAIL UserErrorCode = iota
+	INV_NAME
+	INV_ROLE
+	UNK
+)
+
 // GetById Gets a User by Id.
 func GetById(Id int) models.User {
 	// Query by Id.
@@ -61,4 +89,41 @@ func GetUserRole(user models.User) models.Role {
 
 	// Get the Role, return the code.
 	return RoleMapRepository.GetById(user.RoleId).Code
+}
+
+func AddNew(user *models.User) UserError {
+
+	if user.Email == "" {
+		return iErr{ErrCode: INV_EMAIL}
+	}
+	if user.Name == "" {
+		return iErr{ErrCode: INV_NAME}
+	}
+	if !RoleMapRepository.GetById(user.RoleId).IsValid() {
+		return iErr{ErrCode: INV_ROLE}
+	}
+	rows, err := database.Query("INSERT INTO Users (Email, Password, Role, Name) VALUES (?,?,?,?) RETURNING Id",
+		user.Email, user.Password, user.RoleId, user.Name)
+
+	// Check for errors.
+	if err != nil {
+		// Notify.
+		log.Printf("Couldn't add Item: %s\n", err.Error())
+		return iErr{ErrCode: UNK, Err: err.Error()}
+	}
+	defer rows.Close()
+	// For each row..
+	for rows.Next() {
+
+		// Scan the row.
+		err = rows.Scan(&user.Id)
+
+		// Check for errors.
+		if err != nil {
+			// Notify.
+			log.Printf("Couldn't scan Item: %s\n", err.Error())
+			return iErr{ErrCode: UNK, Err: err.Error()}
+		}
+	}
+	return nil
 }

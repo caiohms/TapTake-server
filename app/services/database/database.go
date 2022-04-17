@@ -33,7 +33,7 @@ func InitSQLite(dbFile string) {
 	if dbFile == "" {
 		dbFile = "Test.db"
 	}
-	log.Println("Using SQLite Database (I hope this is not a production log)")
+	log.Printf("Using SQLite Database %s (I hope this is not a production log)\n", dbFile)
 
 	dbExist := true
 	if _, err := os.Stat(dbFile); errors.Is(err, os.ErrNotExist) {
@@ -71,6 +71,7 @@ func InitSQLite(dbFile string) {
 
 func CloseDB() {
 	db.Close()
+	db = nil
 }
 
 // Init Inits the Postgres database.

@@ -12,6 +12,8 @@ import (
 	"TapTake-server/app/services/database"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -19,10 +21,11 @@ import (
 func TestStaticRepositories(t *testing.T) {
 
 	// Change to root dir
-	os.Chdir("..")
+	_, filename, _, _ := runtime.Caller(0)
+	os.Chdir(filepath.Dir(filename) + "/..")
 
 	// Create database for this test
-	stamp := time.Now().Unix()
+	stamp := time.Now().UnixMilli()
 	// Use memory mode (does not create local database file)
 	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
 	defer database.CloseDB()
@@ -54,29 +57,16 @@ func TestStaticRepositories(t *testing.T) {
 			t.Fatal("RoleMap is valid")
 		}
 	})
-
-	t.Run("Get a valid User item", func(t *testing.T) {
-		obj := UserRepository.GetById(1)
-		if !obj.IsValid() {
-			t.Fatal("User is not valid")
-		}
-	})
-
-	t.Run("Get an invalid User item", func(t *testing.T) {
-		obj := UserRepository.GetById(7)
-		if obj.IsValid() {
-			t.Fatal("User is valid")
-		}
-	})
 }
 
 func TestItemRepository(t *testing.T) {
 
 	// Change to root dir
-	os.Chdir("..")
+	_, filename, _, _ := runtime.Caller(0)
+	os.Chdir(filepath.Dir(filename) + "/..")
 
 	// Create database for this test
-	stamp := time.Now().Unix()
+	stamp := time.Now().UnixMilli()
 	// Use memory mode (does not create local database file)
 	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
 	defer database.CloseDB()
@@ -214,10 +204,11 @@ func TestItemRepository(t *testing.T) {
 
 func TestRestaurantRepository(t *testing.T) {
 	// Change to root dir
-	os.Chdir("..")
+	_, filename, _, _ := runtime.Caller(0)
+	os.Chdir(filepath.Dir(filename) + "/..")
 
 	// Create database for this test
-	stamp := time.Now().Unix()
+	stamp := time.Now().UnixMilli()
 	// Use memory mode (does not create local database file)
 	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
 	defer database.CloseDB()
@@ -284,10 +275,11 @@ func TestRestaurantRepository(t *testing.T) {
 
 func TestUniversityRepository(t *testing.T) {
 	// Change to root dir
-	os.Chdir("..")
+	_, filename, _, _ := runtime.Caller(0)
+	os.Chdir(filepath.Dir(filename) + "/..")
 
 	// Create database for this test
-	stamp := time.Now().Unix()
+	stamp := time.Now().UnixMilli()
 	// Use memory mode (does not create local database file)
 	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
 	defer database.CloseDB()
@@ -337,10 +329,11 @@ func TestUniversityRepository(t *testing.T) {
 
 func TestUserReferencerepository(t *testing.T) {
 	// Change to root dir
-	os.Chdir("..")
+	_, filename, _, _ := runtime.Caller(0)
+	os.Chdir(filepath.Dir(filename) + "/..")
 
 	// Create database for this test
-	stamp := time.Now().Unix()
+	stamp := time.Now().UnixMilli()
 	// Use memory mode (does not create local database file)
 	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
 	defer database.CloseDB()
@@ -420,6 +413,96 @@ func TestUserReferencerepository(t *testing.T) {
 		}
 		if obj.IsValid() {
 			t.Fatal("Obj is valid")
+		}
+	})
+}
+
+func TestUserRepository(t *testing.T) {
+	// Change to root dir
+	_, filename, _, _ := runtime.Caller(0)
+	os.Chdir(filepath.Dir(filename) + "/..")
+
+	// Create database for this test
+	stamp := time.Now().UnixMilli()
+	// Use memory mode (does not create local database file)
+	database.InitSQLite(fmt.Sprintf("file:db-%d.db?mode=memory", stamp))
+	defer database.CloseDB()
+
+	t.Run("Get a valid User item", func(t *testing.T) {
+		obj := UserRepository.GetById(1)
+		if !obj.IsValid() {
+			t.Fatal("User is not valid")
+		}
+	})
+
+	t.Run("Get an invalid User item", func(t *testing.T) {
+		obj := UserRepository.GetById(7)
+		if obj.IsValid() {
+			t.Fatal("User is valid")
+		}
+	})
+
+	t.Run("Add valid user", func(t *testing.T) {
+		user := models.User{
+			Email:    "email@email.com",
+			Name:     "John Cole",
+			Password: "12345",
+			RoleId:   1,
+		}
+		err := UserRepository.AddNew(&user)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		if !user.IsValid() {
+			t.Fatal("User is invalid")
+		}
+	})
+
+	t.Run("Add invalid user", func(t *testing.T) {
+		user := models.User{
+			Email:    "",
+			Name:     "John Cole",
+			Password: "12345",
+			RoleId:   1,
+		}
+		err := UserRepository.AddNew(&user)
+		if err.Code() != UserRepository.INV_EMAIL {
+			t.Fatal(err.Error())
+		}
+		if user.IsValid() {
+			t.Fatal("User is valid")
+		}
+	})
+
+	t.Run("Add invalid user", func(t *testing.T) {
+		user := models.User{
+			Email:    "John Cole",
+			Name:     "",
+			Password: "12345",
+			RoleId:   1,
+		}
+		err := UserRepository.AddNew(&user)
+		if err.Code() != UserRepository.INV_NAME {
+			t.Fatal(err.Error())
+		}
+		if user.IsValid() {
+			t.Fatal("User is valid")
+		}
+	})
+
+	t.Run("Add invalid user", func(t *testing.T) {
+		user := models.User{
+			Email:    "John Cole",
+			Name:     "dasdsa",
+			Password: "12345",
+			RoleId:   156,
+		}
+		err := UserRepository.AddNew(&user)
+		if err.Code() != UserRepository.INV_ROLE {
+			t.Fatal(err.Error())
+		}
+		if user.IsValid() {
+			t.Fatal("User is valid")
 		}
 	})
 }
