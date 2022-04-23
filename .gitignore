@@ -9,3 +9,4 @@
 .env
 *.db
 *.db-journal
+.vscode/

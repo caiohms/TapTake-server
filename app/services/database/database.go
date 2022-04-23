@@ -16,6 +16,14 @@ import (
 
 // Database connection.
 var db *sql.DB
+var DBType DatabaseType = -1
+
+type DatabaseType int
+
+const (
+	SQLite3 DatabaseType = iota
+	PSQL
+)
 
 // ConnectionString for the local deployment.
 var ConnectionString = "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable"
@@ -25,7 +33,7 @@ func InitSQLite(dbFile string) {
 	if dbFile == "" {
 		dbFile = "Test.db"
 	}
-	log.Println("Using SQLite Database (I hope this is not a production log)")
+	log.Printf("Using SQLite Database %s (I hope this is not a production log)\n", dbFile)
 
 	dbExist := true
 	if _, err := os.Stat(dbFile); errors.Is(err, os.ErrNotExist) {
@@ -41,18 +49,29 @@ func InitSQLite(dbFile string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		db.Exec(string(dbData))
+		_, err = db.Exec(string(dbData))
+
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		dbData, err = ioutil.ReadFile("scripts/dbSQLite-sampleData.sql")
 		if err != nil {
 			log.Fatal(err)
 		}
-		db.Exec(string(dbData))
+
+		_, err = db.Exec(string(dbData))
+
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+	DBType = SQLite3
 }
 
 func CloseDB() {
 	db.Close()
+	db = nil
 }
 
 // Init Inits the Postgres database.
@@ -86,18 +105,11 @@ func Init() {
 
 	// Notify.
 	fmt.Println("Database initialized.")
+	DBType = PSQL
 }
 
 // Query executes a query.
 func Query(query string, args ...interface{}) (*sql.Rows, error) {
 	// Execute the query.
 	return db.Query(query, args...)
-}
-
-/*
- * Only export "top level" functions
- * use SQL only in this file
- */
-func GetRestaurante(nome string) {
-	Query("SELECT * FROM restaurantes WHERE name=$1", nome)
 }
